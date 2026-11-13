@@ -39,6 +39,7 @@ const char *file_type(const unsigned char *buff, size_t n) {
         if( n >= signatures[i].length && memcmp(buff, signatures[i].magic, signatures[i].length) == 0) {
             return signatures[i].name;
         }
+    return "Unknown";
     }
 }
 long file_size(FILE *f) {
