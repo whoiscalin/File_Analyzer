@@ -2,6 +2,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+
 FILE *open_file(int argc, char *argv[]) {
     if(argc < 2) {
         printf("Utilizing: %s as <input_file>\n", argv[0]);
@@ -39,8 +41,9 @@ const char *file_type(const unsigned char *buff, size_t n) {
         if( n >= signatures[i].length && memcmp(buff, signatures[i].magic, signatures[i].length) == 0) {
             return signatures[i].name;
         }
-    return "Unknown";
     }
+    return "Unknown";
+
 }
 long file_size(FILE *f) {
     if(fseek(f, 0, SEEK_END)) {
@@ -61,11 +64,13 @@ void hexdump(FILE *f) {
     unsigned char buffer[16];
     unsigned long long int offset = 0;
     size_t n;
+    int freq[256]={0};
     while((n = fread(buffer, 1, 16, f)) > 0) {
         printf("%08llx: ", offset);
         for(size_t j = 0; j < 16; j++) {
             
             if(j < n) {
+                freq[buffer[j]]++;
                 printf("%02x", buffer[j]);
             } else {
                 printf("  ");
@@ -85,6 +90,14 @@ void hexdump(FILE *f) {
         printf("\n");
         offset += n;
     }
+    double entropy = 0.0;
+    for(int i = 0; i < 255; i++) {
+        if(freq[i] > 0) {
+            double p = (double)freq[i] / offset;
+            entropy  -= p*log2(p);
+        }
+    }
+    printf("Shannon Entropy :%lf", entropy);
     printf("\n");
     
 }
