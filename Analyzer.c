@@ -16,10 +16,38 @@ FILE *open_file(int argc, char *argv[]) {
     return f; 
 
 }
-unsigned char *file_type(const unsigned char *buff, size_t n) {
+const char *file_type(const unsigned char *buff, size_t n) {
     const unsigned char bmp[] = {0x42, 0x4D};
+    const unsigned char png[] = {[0]=0x89, [1]=0x50, [2]=0x4e, [3]=0x47};
+    const unsigned char jpg[] = {[0]=0xff, [1]=0xd8, [2]=0xff, [3]=0xe0};
+    const unsigned char elf[] = {[0]=0x7f, [1]=0x45, [2]=0x4c, [3]=0x46};
+    const unsigned char szip[] = {[0]=0x50, [1]=0x4b, [2]=0x03, [3]=0x04};
+    const unsigned char ezip[] = {[0]=0x50, [1]=0x4b, [2]=0x05, [3]=0x06};
+    const unsigned char mzip[] = {[0]=0x50, [1]=0x4b, [2]=0x07, [3]=0x08};
+    const unsigned char pdf[] = {[0]=0x25, [1]=0x50, [2]=0x44, [3]=0x46};
     if(n >= sizeof(bmp) && memcmp(buff, bmp, sizeof(bmp)) == 0) {
         return "BMP";
+    }
+    if( n >= sizeof(png) && memcmp(buff, png,  sizeof(png))==0) {
+        return "PNG";
+    }
+    if( n >= sizeof(jpg) && memcmp(buff, jpg,  sizeof(jpg))==0) {
+        return "JPG";
+    }
+    if( n >= sizeof(elf) && memcmp(buff, elf,  sizeof(elf))==0) {
+        return "ELF";
+    }
+    if( n >= sizeof(szip) && memcmp(buff, szip,  sizeof(szip))==0) {
+        return "Standard ZIP archive";
+    }
+    if( n >= sizeof(ezip) && memcmp(buff, ezip,  sizeof(ezip))==0) {
+        return "Empty ZIP archive";
+    }
+    if( n >= sizeof(mzip) && memcmp(buff, mzip,  sizeof(mzip))==0) {
+        return "Spanned ZIP ";
+    }
+    if( n >= sizeof(pdf) && memcmp(buff, pdf,  sizeof(pdf))==0) {
+        return "PDF ";
     }
     return "Unknown";
 }
