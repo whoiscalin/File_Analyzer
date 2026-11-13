@@ -83,7 +83,7 @@ void hexdump(FILE *f) {
                 printf(" ");
             }
         }
-        printf("  ");
+        printf(" ");
         for(size_t i = 0; i < n; i++) {
             if(isprint(buffer[i])) {
                 printf("%c", buffer[i]);
@@ -96,6 +96,16 @@ void hexdump(FILE *f) {
     }
     printf("\n");
     
+}
+int extension_index(char *argv[1]) {
+    int index;
+    for(int i = 0; i < strlen(argv[1]); i++) {
+        if(argv[1][i]=='.') {
+            return i+1;
+        }
+
+    }
+    return 1;
 }
 int main(int argc, char *argv[]) {
    
@@ -111,11 +121,21 @@ int main(int argc, char *argv[]) {
     printf("File is %ld bytes.\n", size);
     unsigned char magic[8];
     size_t magic_n = fread(magic, 1, sizeof(magic), f);
-
+    char extension[3];
+    for(int i = 0; i < 3; i++) {
+        extension[i] = argv[1][i+extension_index(argv)];
+    }
+    if(strcmp(extension, file_type(magic, magic_n))) {
+        perror("Extension does not match with file type.\n");
+        
+    } else {
     printf("File type: %s\n\n", file_type(magic, magic_n));
+    }
     rewind(f);
     hexdump(f);
+    
     fclose(f);
+
     return 0;
 }
             
