@@ -19,7 +19,7 @@ FILE *open_file(int argc, char *argv[]) {
 const char *file_type(const unsigned char *buff, size_t n) {
     const unsigned char bmp[] = {0x42, 0x4D};
     const unsigned char png[] = {[0]=0x89, [1]=0x50, [2]=0x4e, [3]=0x47};
-    const unsigned char jpg[] = {[0]=0xff, [1]=0xd8, [2]=0xff, [3]=0xe0};
+    const unsigned char jpg[] = {[0]=0xff, [1]=0xd8, [2]=0xff};
     const unsigned char elf[] = {[0]=0x7f, [1]=0x45, [2]=0x4c, [3]=0x46};
     const unsigned char szip[] = {[0]=0x50, [1]=0x4b, [2]=0x03, [3]=0x04};
     const unsigned char ezip[] = {[0]=0x50, [1]=0x4b, [2]=0x05, [3]=0x06};
@@ -53,13 +53,13 @@ const char *file_type(const unsigned char *buff, size_t n) {
 }
 long file_size(FILE *f) {
     if(fseek(f, 0, SEEK_END)) {
-        perror("fseek failed.\n");
+        fprintf(stderr, "fseek failed.\n");
         fclose(f);
         return -1L;
     }
     long size = ftell(f);
     if(size == -1L) {
-        perror("ftell failed.\n");
+        fprintf(stderr, "ftell failed.\n");
         fclose(f);
         return -1L;
     }
@@ -97,15 +97,23 @@ void hexdump(FILE *f) {
     printf("\n");
     
 }
-int extension_index(char *argv[1]) {
-    int index;
-    for(int i = 0; i < strlen(argv[1]); i++) {
-        if(argv[1][i]=='.') {
-            return i+1;
-        }
-
+const char  *get_extension(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if(!dot || dot == filename) {
+        return "";
     }
-    return 1;
+    return dot + 1;
+    
+}
+int compare_insensitive(const char *s1, const char *s2) {
+    while(*s1 && *s2) {
+        if(toupper((unsigned char)*s1) != toupper((unsigned char)*s2)) {
+            return 1;
+        }
+        s1++;
+        s2++;
+    }
+    return *s1 != *s2;
 }
 int main(int argc, char *argv[]) {
    
@@ -121,13 +129,11 @@ int main(int argc, char *argv[]) {
     printf("File is %ld bytes.\n", size);
     unsigned char magic[8];
     size_t magic_n = fread(magic, 1, sizeof(magic), f);
-    char extension[3];
-    for(int i = 0; i < 3; i++) {
-        extension[i] = argv[1][i+extension_index(argv)];
-    }
-    if(strcmp(extension, file_type(magic, magic_n))) {
-        perror("Extension does not match with file type.\n");
-        
+    const char *detected_type = file_type(magic, magic_n);
+    const char *extension = get_extension(argv[1]);
+
+    if(compare_insensitive(extension, detected_type)!=0 && strcmp(detected_type, "Unknown") != 0) {
+        fprintf(stderr, "Warning: Extension '.%s' does not match detected file type '%s'.\n\n", extension, detected_type);    
     } else {
     printf("File type: %s\n\n", file_type(magic, magic_n));
     }
